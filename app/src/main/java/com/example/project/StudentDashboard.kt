@@ -341,6 +341,7 @@ fun DayCard(day: Int) {
             )
         }
     }
+
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

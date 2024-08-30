@@ -74,6 +74,8 @@ dependencies {
     implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.3.0-beta05")
     implementation(libs.androidx.runtime.android)
     implementation(libs.androidx.tools.core)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
 
     // Navigation
     val nav_version = "2.7.7"

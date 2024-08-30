@@ -1,5 +1,6 @@
 package com.example.project
 
+import AssignmentUploadScreen
 import ProjectTheme
 import android.os.Build
 import android.os.Bundle
@@ -65,6 +66,14 @@ fun MaterialUIApp() {
                 val stud_id = backStackEntry.arguments?.getString("stud_id")?.toIntOrNull()
                 if (stud_id != null) {
                     FacultyDetail(navController, stud_id)
+                } else {
+                    // Handle invalid stud_id scenario
+                }
+            }
+            composable("Assignment/{stud_id}") { backStackEntry ->
+                val stud_id = backStackEntry.arguments?.getString("stud_id")?.toIntOrNull()
+                if (stud_id != null) {
+                    AssignmentUploadScreen(navController, stud_id)
                 } else {
                     // Handle invalid stud_id scenario
                 }

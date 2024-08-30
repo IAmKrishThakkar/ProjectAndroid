@@ -140,3 +140,21 @@ data class Faculty(
     @SerializedName("profile_photo")
     val profilePhoto: String? // URL or file path
 )
+
+
+data class AssignmentSubmit(
+    @SerializedName("id")
+    val id: Int,
+
+    @SerializedName("student_id")
+    val studentId: Int,
+
+    @SerializedName("assignment_id")
+    val assignmentId: Int,
+
+    @SerializedName("submission_time")
+    val submissionTime: String, // Format: YYYY-MM-DD HH:MM:SS
+
+    @SerializedName("fileLocation")
+    val fileLocation: String // URL or file path
+)

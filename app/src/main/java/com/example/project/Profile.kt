@@ -73,7 +73,7 @@ fun Profile(navController: NavHostController, studId: Int) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     NavigationIcon(navController, "StudentDashboard/$studId", Icons.Filled.Home, "Home")
-                    NavigationIcon(navController, "Assignment", Icons.Filled.Assignment, "Courses")
+                    NavigationIcon(navController, "Assignment/$studId", Icons.Filled.Assignment, "Courses")
                     NavigationIcon(navController, "Faculty/$studId", Icons.Filled.School, "Assignments")
                     NavigationIcon(navController, "Profile/$studId", Icons.Filled.Person, "Profile")
                 }

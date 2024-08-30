@@ -106,7 +106,7 @@ fun StudentDashboard(navController: NavController, studID: Int) {
                             RetrofitInstance.api.getAttendance(it).execute()
                         }
                         if (attendanceResponse.isSuccessful) {
-                            attendance = (attendanceResponse.body() ?: emptyList()) as List<Attendance>
+                            attendance = attendanceResponse.body() ?: emptyList()
                         } else {
                             errorMessage = "Failed to fetch attendance: ${attendanceResponse.code()}"
                         }
@@ -166,7 +166,7 @@ fun StudentDashboard(navController: NavController, studID: Int) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     NavigationIcon(navController, "StudentDashboard/$studID", Icons.Filled.Home, "Home")
-                    NavigationIcon(navController, "Assignment", Icons.Filled.Assignment, "Marks")
+                    NavigationIcon(navController, "Assignment/$studID", Icons.Filled.Assignment, "Marks")
                     NavigationIcon(navController, "Faculty/$studID", Icons.Filled.School, "Faculty")
                     NavigationIcon(navController, "Profile/$studID", Icons.Filled.Person, "Profile")
                 }

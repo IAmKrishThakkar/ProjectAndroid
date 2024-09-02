@@ -1,4 +1,5 @@
 // RetrofitInstance.kt
+import Model.AssignmentSubmit
 import Model.Attendance
 
 // Model/AttendanceData.kt
@@ -46,8 +47,9 @@ interface StudentApi {
     @GET("students/classes.php")
     fun getClassesByFacultyId(@Query("faculty_id") facultyId: Int): Call<List<classes>>
 
-    @GET("students/classes.php")
-    fun getClasses(): Call<List<classes>>
+    @GET("students/AssignmentSubmit.php")
+    fun getAssignment(): Call<List<AssignmentSubmit>>
+
 
     @Multipart
     @POST("students/AssignmentSubmit.php")

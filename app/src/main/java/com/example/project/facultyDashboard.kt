@@ -86,7 +86,7 @@ fun FacultyAttendanceScreen(navController: NavController, Fid: Int) {
                 ) {
                     NavigationIcon(navController, "FacultyAttendanceScreen/$Fid", Icons.Filled.Home, "Home")
                     NavigationIcon(navController, "AssignmentDetail/$Fid", Icons.Filled.Assignment, "AssignmentManage")
-                    NavigationIcon(navController, "Faculty/$Fid", Icons.Filled.Face, "Students")
+                    NavigationIcon(navController, "StudentDetail/$Fid", Icons.Filled.Face, "Students")
                     NavigationIcon(navController, "Profile/$Fid", Icons.Filled.Person, "Profile")
                 }
             }

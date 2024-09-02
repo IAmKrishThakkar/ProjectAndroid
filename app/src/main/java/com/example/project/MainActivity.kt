@@ -2,6 +2,7 @@ package com.example.project
 
 import AssignmentUploadScreen
 import ProjectTheme
+import StudentDetail
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -58,6 +59,16 @@ fun MaterialUIApp() {
                 val Fid = backStackEntry.arguments?.getString("Fid")?.toIntOrNull()
                 if (Fid != null) {
                     FacultyAttendanceScreen(navController, Fid)
+                } else {
+                    // Handle the invalid stud_id scenario
+                    Toast.makeText(context, "Invalid Faculty ID", Toast.LENGTH_SHORT).show()
+
+                }
+            }
+            composable("StudentDetail/{Fid}") { backStackEntry ->
+                val Fid = backStackEntry.arguments?.getString("Fid")?.toIntOrNull()
+                if (Fid != null) {
+                    StudentDetail(navController, Fid)
                 } else {
                     // Handle the invalid stud_id scenario
                     Toast.makeText(context, "Invalid Faculty ID", Toast.LENGTH_SHORT).show()

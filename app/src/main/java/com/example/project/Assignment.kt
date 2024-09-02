@@ -36,9 +36,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.project.NavigationIcon
-import com.google.android.material.bottomappbar.BottomAppBar
-import com.google.android.material.progressindicator.CircularProgressIndicator
-import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

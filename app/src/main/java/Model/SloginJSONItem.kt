@@ -102,9 +102,6 @@ data class Attendance(
     @SerializedName("student_id")
     val studentId: Int,
 
-    @SerializedName("subject")
-    val subject: String,
-
     @SerializedName("status")
     val status: Int, // Assuming status is an integer (0 or 1)
 
@@ -157,4 +154,18 @@ data class AssignmentSubmit(
 
     @SerializedName("fileLocation")
     val fileLocation: String // URL or file path
+)
+
+data class classes(
+    @SerializedName("id")
+    val id: Int,
+
+    @SerializedName("class_name")
+    val className: String,
+
+    @SerializedName("department")
+    val department: String,
+
+    @SerializedName("year")
+    val year: Int,
 )

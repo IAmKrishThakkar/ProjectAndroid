@@ -27,12 +27,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -228,7 +226,7 @@ fun StudentDashboard(navController: NavController, studID: Int) {
                         }
 
                         item {
-                            AttendanceArea()
+                            AttendanceArea(attendance)
                         }
 
                         item {
@@ -249,6 +247,49 @@ fun StudentDashboard(navController: NavController, studID: Int) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun AttendanceArea(attendance: List<Attendance>) {
+    Card(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(7.dp),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            CurrentMonthDisplay() // Show current month and calendar
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Display attendance for the current month
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(7),
+                contentPadding = PaddingValues(8.dp),
+                modifier = Modifier.height(260.dp)
+            ) {
+                val daysInMonth = LocalDate.now().lengthOfMonth()
+                val firstDayOfMonth = LocalDate.now().withDayOfMonth(1).dayOfWeek.value
+
+                // Add blank spaces for the days before the first of the month
+                items(firstDayOfMonth - 1) {
+                    Box(modifier = Modifier.size(20.dp)) // Empty box for padding
+                }
+
+                // Add day numbers with attendance status
+                items(daysInMonth) { index ->
+                    val day = index + 1
+                    val date = LocalDate.now().withDayOfMonth(day).format(DateTimeFormatter.ISO_DATE)
+                    val status = attendance.find { it.date == date }?.status ?: -1
+                    DayCard(day, status)
+                }
+            }
+        }
+    }
+}
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -276,7 +317,6 @@ fun CurrentMonthDisplay() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        CalendarGrid(daysInMonth, firstDayOfMonth)
     }
 }
 
@@ -299,37 +339,20 @@ fun DayNamesRow() {
 }
 
 @Composable
-fun CalendarGrid(daysInMonth: Int, firstDayOfMonth: Int) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(7),
-        contentPadding = PaddingValues(8.dp),
-        modifier = Modifier
-            .height(260.dp)
-
-    ) {
-        // Add blank spaces for the days before the first of the month
-        items(firstDayOfMonth - 1) {
-            Box(modifier = Modifier
-                .size(20.dp)
-            ) // Empty box for padding
-        }
-
-        // Add day numbers
-        items(daysInMonth) { index ->
-            val day = index + 1
-            DayCard(day)
-        }
+fun DayCard(day: Int, attendanceStatus: Int = -1) {
+    val backgroundColor = when (attendanceStatus) {
+        1 -> Color.Green // Present
+        0 -> Color.Red // Absent
+        2 -> Color.Blue // Granted
+        else -> Color.LightGray // Default color
     }
-}
 
-@Composable
-fun DayCard(day: Int) {
     Card(
         shape = MaterialTheme.shapes.small,
         modifier = Modifier
             .size(40.dp)
             .clip(MaterialTheme.shapes.small),
-        colors = CardDefaults.cardColors(containerColor = Color.LightGray)
+        colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -341,39 +364,14 @@ fun DayCard(day: Int) {
             )
         }
     }
-
 }
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun AttendanceArea() {
-
-    Card(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(7.dp),
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface
-        )
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            CurrentMonthDisplay()
-        }
-    }
-}
-
 
 @Composable
 fun SectionTitle(title: String) {
     Text(
         text = title,
-        style = MaterialTheme.typography.bodyLarge,
-        fontWeight = FontWeight.Bold,
-        fontSize = 24.sp,
-        modifier = Modifier.padding(16.dp)
+        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+        modifier = Modifier.padding(vertical = 8.dp)
     )
 }
 
@@ -381,20 +379,23 @@ fun SectionTitle(title: String) {
 fun TodayClassCard(subject: String, stime: String, etime: String) {
     Card(
         modifier = Modifier
-            .padding(8.dp)
-            .height(110.dp)
-            .width(185.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 9.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface
-        )
+            .padding(vertical = 4.dp)
+            .fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(4.dp),
+        shape = RoundedCornerShape(8.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = subject, style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Start: $stime", style = MaterialTheme.typography.titleSmall)
-            Text(text = "End: $etime", style = MaterialTheme.typography.titleSmall)
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
+            Text(
+                text = subject,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Time: $stime - $etime",
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }
@@ -403,34 +404,33 @@ fun TodayClassCard(subject: String, stime: String, etime: String) {
 fun PendingAssignmentCard(subject: String, description: String, dueDate: String) {
     Card(
         modifier = Modifier
-            .padding(8.dp)
+            .padding(vertical = 4.dp)
             .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 9.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onBackground
-        ),
+        elevation = CardDefaults.cardElevation(4.dp),
         shape = RoundedCornerShape(8.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
             Text(
                 text = subject,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = description,
-                style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSecondary)
+                style = MaterialTheme.typography.bodyMedium
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Due: $dueDate",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                text = "Due Date: $dueDate",
+                style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.error)
             )
         }
     }
 }
+
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)

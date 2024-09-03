@@ -3,6 +3,7 @@ package com.example.project
 import Model.StudentLogin
 import ProjectTheme
 import RetrofitInstance
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.project.ui.theme.CustomBlue
 import com.example.project.ui.theme.CustomGray
 import com.example.project.ui.theme.CustomWhite
@@ -119,12 +121,14 @@ fun Profile(navController: NavHostController, studId: Int) {
                     // Student Details
                     item {
                         ProfilePicture(
+                            profilepic = "https://netxgroup.in/students/${profile.profilePhoto}",
                             title = profile.stud_name,
                             details = listOf(
                                 "${profile.department} ${profile.semester}",
                                 "Roll No- ${profile.roll_no}"
                             )
                         )
+                        println("Profilepc:${profile.profilePhoto}")
                     }
 
                     // Academic Details
@@ -170,7 +174,7 @@ fun Profile(navController: NavHostController, studId: Int) {
                             color = CustomBlue
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        OnGoingCourse(text = "BCA")
+                        OnGoingCourse(text = "${profile.currentCourses}")
                     }
                 }
             }
@@ -179,7 +183,7 @@ fun Profile(navController: NavHostController, studId: Int) {
 }
 
 @Composable
-fun ProfilePicture(title: String, details: List<String>) {
+fun ProfilePicture(profilepic: String, title: String, details: List<String>) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -189,7 +193,9 @@ fun ProfilePicture(title: String, details: List<String>) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Profile Picture
-        Box(
+        Image(
+            painter = rememberAsyncImagePainter(model = profilepic),
+            contentDescription = "Profile Picture",
             modifier = Modifier
                 .size(100.dp)
                 .clip(CircleShape)
@@ -221,6 +227,7 @@ fun ProfilePicture(title: String, details: List<String>) {
         }
     }
 }
+
 
 @Composable
 fun ProfileSection(title: String, details: List<String>) {

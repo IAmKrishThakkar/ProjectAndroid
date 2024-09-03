@@ -8,12 +8,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -129,7 +132,7 @@ fun LoadingScreen(paddingValues: PaddingValues) {
             .padding(paddingValues),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator()
+        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
     }
 }
 
@@ -143,52 +146,58 @@ fun ErrorScreen(
         contentAlignment = Alignment.Center
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(16.dp)
         ) {
             Text("Error: $errorMessage", color = Color.Red, style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = onRetry) {
+            Button(onClick = onRetry, colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.error)) {
                 Text("Retry")
             }
         }
     }
 }
 
+
 @Composable
 fun StudentDetailContent(classesList: List<classes>, students: List<StudentLogin>, paddingValues: PaddingValues) {
-    Column(
+    LazyColumn(
         modifier = Modifier
             .padding(paddingValues)
             .padding(16.dp)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Spacer(modifier = Modifier.height(8.dp))
         classesList.forEach { classItem ->
-            Text(text = "Class Name: ${classItem.className}", style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(4.dp))
-        }
+            item {
+                ClassDetail(classItem = classItem) // Display class details
+                Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "Students", style = MaterialTheme.typography.titleLarge)
-        Spacer(modifier = Modifier.height(8.dp))
-
-        LazyColumn {
-            items(students) { studentLogin ->
-                StudentCard(studentLogin = studentLogin)
-                Spacer(modifier = Modifier.height(4.dp))
+                val studentsForClass = students.filter { it.class_id == classItem.id } // Filter students by classId
+                studentsForClass.forEach { student ->
+                    StudentCard(studentLogin = student) // Display each student
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
         }
     }
 }
 
+
+
 @Composable
 fun StudentCard(studentLogin: StudentLogin) {
+    val photourl = "https://netxgroup.in/students/"
+    val completeUrl = "$photourl${studentLogin.profilePhoto}"
     Card(
-        colors = CardDefaults.cardColors(Color.White),
-        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(6.dp),
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable { /* Handle click */ }
+            .clickable { /* Handle click */ },
+        shape = RoundedCornerShape(12.dp) // Rounded corners for modern look
     ) {
         Row(
             modifier = Modifier
@@ -198,10 +207,12 @@ fun StudentCard(studentLogin: StudentLogin) {
             horizontalArrangement = Arrangement.Start
         ) {
             Image(
-                painter = rememberAsyncImagePainter(model = studentLogin.profilePhoto ),
+                painter = rememberAsyncImagePainter(model = completeUrl),
                 contentDescription = null,
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(60.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)) // Better background effect
                     .padding(8.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
@@ -218,18 +229,30 @@ fun StudentCard(studentLogin: StudentLogin) {
     }
 }
 
-private suspend fun getClassesByFacultyId(facultyId: Int): List<classes> {
-    return withContext(Dispatchers.IO) {
-        try {
-            val response = RetrofitInstance.api.getClassesByFacultyId(facultyId).execute()
-            if (response.isSuccessful) {
-                response.body() ?: emptyList()
-            } else {
-                emptyList()
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            emptyList()
+
+
+@Composable
+fun ClassDetail(classItem: classes) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .background(MaterialTheme.colorScheme.background),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(4.dp),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Class Name: ${classItem.className}",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Students", style = MaterialTheme.typography.titleMedium)
         }
     }
 }
@@ -249,6 +272,23 @@ private suspend fun fetchStudentsDetail(classId: Int): List<StudentLogin> {
         }
     }
 }
+
+private suspend fun getClassesByFacultyId(facultyId: Int): List<classes> {
+    return withContext(Dispatchers.IO) {
+        try {
+            val response = RetrofitInstance.api.getClassesByFacultyId(facultyId).execute()
+            if (response.isSuccessful) {
+                response.body() ?: emptyList()
+            } else {
+                throw Exception("Failed to load classes. Response code: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw Exception("Error fetching classes: ${e.message}")
+        }
+    }
+}
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)

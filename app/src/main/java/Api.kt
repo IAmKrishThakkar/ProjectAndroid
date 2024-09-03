@@ -30,6 +30,9 @@ interface StudentApi {
     fun getStudentsByClassId(@Query("class_id") classId: Int): Call<List<StudentLogin>>
 
     @GET("students/stud.php")
+    fun getStudentsByStudId(@Query("stud_Id") classId: Int): Call<List<StudentLogin>>
+
+    @GET("students/stud.php")
     fun getStudents(): Call<List<StudentLogin>>
 
     @GET("students/timetable.php")
@@ -37,6 +40,9 @@ interface StudentApi {
 
     @GET("students/pendingAssignment.php")
     fun getPendingAssignment(@Query("class_id") classId: Int): Call<List<PendingAssignment>>
+
+    @GET("students/pendingAssignment.php")
+    fun getPendingAssignmentByAss_id(@Query("Ass_id") classId: Int): Call<List<PendingAssignment>>
 
     @GET("students/attendance.php")
     fun getAttendance(@Query("student_id") studentId: Int): Call<List<Attendance>>

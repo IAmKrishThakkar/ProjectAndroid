@@ -238,6 +238,7 @@ fun ClassDetail(classItem: classes) {
             .fillMaxWidth()
             .padding(8.dp)
             .background(MaterialTheme.colorScheme.background),
+
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(4.dp),
         shape = RoundedCornerShape(8.dp)

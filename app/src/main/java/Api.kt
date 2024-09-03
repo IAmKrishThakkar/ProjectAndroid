@@ -17,6 +17,7 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
@@ -42,6 +43,9 @@ interface StudentApi {
     fun getPendingAssignment(@Query("class_id") classId: Int): Call<List<PendingAssignment>>
 
     @GET("students/pendingAssignment.php")
+    fun getPendingAssignmentbyfaculty_id(@Query("faculty_id") classId: Int): Call<List<PendingAssignment>>
+
+    @GET("students/pendingAssignment.php")
     fun getPendingAssignmentByAss_id(@Query("Ass_id") classId: Int): Call<List<PendingAssignment>>
 
     @GET("students/attendance.php")
@@ -56,6 +60,19 @@ interface StudentApi {
     @GET("students/AssignmentSubmit.php")
     fun getAssignment(): Call<List<AssignmentSubmit>>
 
+    @DELETE("students/pendingAssignment.php")
+    suspend fun deletePendingAssignment(@Query("Ass_id") assignmentId: Int): Response<ApiResponse>
+
+    @Multipart
+    @POST("students/pendingAssignment.php")
+    suspend fun postPendingAssignment(
+        @Part("id")  id: RequestBody?,
+        @Part("class_id")  classId: RequestBody,
+        @Part("faculty_id")  facultyId: RequestBody,
+        @Part("subject")  subject: RequestBody,
+        @Part("description")  description: RequestBody,
+        @Part("submission_deadline")  submissionDeadline: RequestBody
+    ): Response<ApiResponse>
 
     @Multipart
     @POST("students/AssignmentSubmit.php")

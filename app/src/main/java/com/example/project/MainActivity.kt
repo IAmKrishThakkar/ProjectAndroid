@@ -65,6 +65,31 @@ fun MaterialUIApp() {
 
                 }
             }
+            composable("AddAssignment/{Fid}/{class_ID}"){ backStackEntry ->
+                val Fid = backStackEntry.arguments?.getString("Fid")?.toIntOrNull()
+                val class_ID = backStackEntry.arguments?.getString("class_ID")?.toIntOrNull()
+                if (Fid != null) {
+                    if (class_ID != null) {
+                        AddAssignment(navController, Fid,class_ID)
+                    }
+                } else {
+                    // Handle the invalid stud_id scenario
+                    Toast.makeText(context, "Invalid Faculty ID", Toast.LENGTH_SHORT).show()
+
+                }
+
+            }
+            composable("FacultyProfile/{Fid}"){ backStackEntry ->
+                val Fid = backStackEntry.arguments?.getString("Fid")?.toIntOrNull()
+                if (Fid != null) {
+                    FacultyProfile(navController, Fid)
+                } else {
+                    // Handle the invalid stud_id scenario
+                    Toast.makeText(context, "Invalid Faculty ID", Toast.LENGTH_SHORT).show()
+
+                }
+
+            }
             composable("StudentDetail/{Fid}") { backStackEntry ->
                 val Fid = backStackEntry.arguments?.getString("Fid")?.toIntOrNull()
                 if (Fid != null) {

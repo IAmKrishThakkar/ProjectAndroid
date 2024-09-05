@@ -45,9 +45,6 @@ interface StudentApi {
     @GET("students/pendingAssignment.php")
     fun getPendingAssignmentbyfaculty_id(@Query("faculty_id") classId: Int): Call<List<PendingAssignment>>
 
-    @GET("students/pendingAssignment.php")
-    fun getPendingAssignmentByAss_id(@Query("Ass_id") classId: Int): Call<List<PendingAssignment>>
-
     @GET("students/attendance.php")
     fun getAttendance(@Query("student_id") studentId: Int): Call<List<Attendance>>
 
@@ -81,6 +78,22 @@ interface StudentApi {
         @Part("assignment_id") assignmentId: RequestBody,
         @Part file: MultipartBody.Part
     ): Response<Void>
+
+
+    @POST("students/stud.php")
+    @Multipart
+    suspend fun resetPassword(
+        @Part("email") email: RequestBody,
+        @Part("newPassword") newPassword: RequestBody
+    ): Response<ApiResponse>
+
+    @POST("students/faculty.php")
+    @Multipart
+    suspend fun resetFacultyPassword(
+        @Part("email") email: RequestBody,
+        @Part("newPassword") newPassword: RequestBody
+    ): Response<ApiResponse>
+
 
     @Multipart
     @POST("students/attendance.php")

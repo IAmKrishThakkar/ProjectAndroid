@@ -3,12 +3,22 @@ package com.example.project
 import LoginForm
 import ProjectTheme
 import android.widget.Toast
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.*
+import java.lang.reflect.Modifier
 
 @Composable
 fun Slogin(navController: NavController) {
@@ -49,8 +59,10 @@ fun Slogin(navController: NavController) {
             }
         },
         errorMessage = errorMessage,
-        imageResId = R.drawable.im5
+        imageResId = R.drawable.im5,
+        onForgotPasswordClick = { navController.navigate("ForgotPass") }
     )
+
 }
 
 fun validateLogin(
@@ -89,6 +101,22 @@ fun validateLogin(
 }
 
 
+@Composable
+fun ForgotPasswordCard() {
+    Card(
+
+        colors = CardDefaults.cardColors(containerColor = Color.Gray.copy(alpha = 0.1f))
+    ) {
+        Box(
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Forgot Password?",
+                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp, color = Color.Blue)
+            )
+        }
+    }
+}
 
 @Preview
 @Composable

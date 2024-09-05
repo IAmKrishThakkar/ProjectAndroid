@@ -45,6 +45,12 @@ fun MaterialUIApp() {
             composable("Flogin") {
                 Flogin(navController)
             }
+            composable("ForgotPass") {
+                ForgotPass(navController)
+            }
+            composable("ForgotFacultyPass") {
+                ForgotFacultyPass(navController)
+            }
             composable("StudentDashboard/{stud_id}") { backStackEntry ->
                 val studId = backStackEntry.arguments?.getString("stud_id")?.toIntOrNull()
                 if (studId != null) {

@@ -41,7 +41,8 @@ fun LoginForm(
     isLoading: Boolean,
     onSubmit: () -> Unit,
     errorMessage: String,
-    imageResId: Int
+    imageResId: Int,
+    onForgotPasswordClick: () -> Unit // Add this parameter
 ) {
     Box(
         modifier = Modifier
@@ -69,6 +70,7 @@ fun LoginForm(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Main login card
             Card(
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(8.dp),
@@ -124,16 +126,6 @@ fun LoginForm(
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Forgot Password?",
-                        modifier = Modifier
-                            .clickable { /* Handle forgot password click */ }
-                            .padding(8.dp),
-                        color = CustomBlue,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.End
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
                     Button(
                         onClick = onSubmit,
                         modifier = Modifier
@@ -163,6 +155,40 @@ fun LoginForm(
                             )
                         }
                     }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Forgot Password card
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clickable { onForgotPasswordClick() }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Forgot Password?",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = CustomBlue,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Click here to reset your password",
+                        fontSize = 14.sp,
+                        color = CustomBlue,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
         }
@@ -248,6 +274,7 @@ fun PreviewLoginForm() {
         isLoading = false,
         onSubmit = { /* Handle submit */ },
         errorMessage = "",
-        imageResId = R.drawable.im2 // Replace with your image resource ID
+        imageResId = R.drawable.im2, // Replace with your image resource ID,
+        onForgotPasswordClick = { /* Handle forgot password click */ }
     )
 }

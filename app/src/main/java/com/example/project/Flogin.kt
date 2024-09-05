@@ -49,8 +49,10 @@ fun Flogin(navController: NavController) {
             }
         },
         errorMessage = errorMessage,
-        imageResId = R.drawable.im4
+        imageResId = R.drawable.im4,
+        onForgotPasswordClick = { navController.navigate("ForgotFacultyPass") }
     )
+
 }
 
 fun validateFacultyLogin(

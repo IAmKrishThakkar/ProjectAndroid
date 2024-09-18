@@ -1,22 +1,21 @@
-package com.example.project
-
-import ProjectTheme
+import android.app.DatePickerDialog
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.navigation.NavController
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,6 +26,11 @@ fun AddAssignment(navController: NavController, Fid: Int, class_ID: Int) {
     var submissionDeadline by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // Date picker state
+    val calendar = Calendar.getInstance()
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    var showDatePicker by remember { mutableStateOf(false) }
 
     // Coroutine scope for launching network requests
     val coroutineScope = rememberCoroutineScope()
@@ -80,10 +84,12 @@ fun AddAssignment(navController: NavController, Fid: Int, class_ID: Int) {
                 value = submissionDeadline,
                 onValueChange = { submissionDeadline = it },
                 label = { Text("Submission Deadline") },
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Done
-                )
+                readOnly = true, // Make this field read-only to ensure the user selects the date using the DatePicker
+                trailingIcon = {
+                    IconButton(onClick = { showDatePicker = true }) {
+                        Icon(Icons.Filled.CalendarToday, contentDescription = "Select Date")
+                    }
+                }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -96,7 +102,7 @@ fun AddAssignment(navController: NavController, Fid: Int, class_ID: Int) {
                         try {
                             val response = RetrofitInstance.api.postPendingAssignment(
                                 id = null,
-                                classId = class_ID.toString().toRequestBody("text/plain".toMediaTypeOrNull()), // Replace with actual classId
+                                classId = class_ID.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
                                 facultyId = Fid.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
                                 subject = subject.toRequestBody("text/plain".toMediaTypeOrNull()),
                                 description = description.toRequestBody("text/plain".toMediaTypeOrNull()),
@@ -129,6 +135,21 @@ fun AddAssignment(navController: NavController, Fid: Int, class_ID: Int) {
                 Text(text = it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 16.dp))
             }
         }
+    }
+
+    // Date picker dialog
+    if (showDatePicker) {
+        DatePickerDialog(
+            LocalContext.current,
+            { _, year, month, dayOfMonth ->
+                calendar.set(year, month, dayOfMonth)
+                submissionDeadline = dateFormat.format(calendar.time)
+                showDatePicker = false
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
     }
 }
 

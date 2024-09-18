@@ -10,32 +10,42 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.project.NavigationIcon
+import com.example.project.ui.theme.CustomBlue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -48,6 +58,7 @@ import retrofit2.HttpException
 import java.io.File
 import java.io.IOException
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AssignmentUploadScreen(navController: NavController, studID: Int) {
@@ -57,11 +68,10 @@ fun AssignmentUploadScreen(navController: NavController, studID: Int) {
     var fileUri by remember { mutableStateOf<Uri?>(null) }
     var uploadSuccess by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
-    var uploadProgress by remember { mutableStateOf(0f) } // Progress as a percentage
+    var uploadProgress by remember { mutableStateOf(0f) }
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Fetch data when screen is first displayed
     LaunchedEffect(studID) {
         coroutineScope.launch {
             val classId = getStudentClassId(studID)
@@ -76,7 +86,14 @@ fun AssignmentUploadScreen(navController: NavController, studID: Int) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Upload Assignment") }
+                title = {
+                    Text(
+                        text = "Assignment Upload",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontSize = 22.sp
+                        )
+                    )
+                }
             )
         },
         bottomBar = {
@@ -100,43 +117,49 @@ fun AssignmentUploadScreen(navController: NavController, studID: Int) {
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {}
     ) { innerPadding ->
-        AssignmentUploadContent(
-            modifier = Modifier.padding(innerPadding),
-            assignments = assignments,
-            errorMessage = errorMessage,
-            fileUri = fileUri,
-            onFileUriChange = { uri -> fileUri = uri },
-            onSubmit = { assignmentId ->
-                if (fileUri != null) {
-                    coroutineScope.launch {
-                        isLoading = true
-                        uploadProgress = 0f
-                        try {
-                            submitAssignment(
-                                studentId = studID,
-                                assignmentId = assignmentId,
-                                fileUri = fileUri!!,
-                                context = context,
-                                onProgressUpdate = { progress ->
-                                    uploadProgress = progress // Update progress
-                                }
-                            )
-                            snackbarHostState.showSnackbar("Upload successful!")
-                            uploadSuccess = true
-                        } catch (e: Exception) {
-                            errorMessage = "Submission failed: ${e.message}"
-                        } finally {
-                            isLoading = false
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            AssignmentUploadContent(
+                modifier = Modifier.padding(16.dp),
+                assignments = assignments,
+                errorMessage = errorMessage,
+                fileUri = fileUri,
+                onFileUriChange = { uri -> fileUri = uri },
+                onSubmit = { assignmentId ->
+                    if (fileUri != null) {
+                        coroutineScope.launch {
+                            isLoading = true
+                            uploadProgress = 0f
+                            try {
+                                submitAssignment(
+                                    studentId = studID,
+                                    assignmentId = assignmentId,
+                                    fileUri = fileUri!!,
+                                    context = context,
+                                    onProgressUpdate = { progress ->
+                                        uploadProgress = progress
+                                    }
+                                )
+                                snackbarHostState.showSnackbar("Upload successful!")
+                                uploadSuccess = true
+                            } catch (e: Exception) {
+                                errorMessage = "Submission failed: ${e.message}"
+                            } finally {
+                                isLoading = false
+                            }
                         }
+                    } else {
+                        errorMessage = "Please select a file to upload"
                     }
-                } else {
-                    errorMessage = "Please select a file to upload"
-                }
-            },
-            uploadSuccess = uploadSuccess,
-            isLoading = isLoading,
-            uploadProgress = uploadProgress
-        )
+                },
+                uploadSuccess = uploadSuccess,
+                isLoading = isLoading,
+                uploadProgress = uploadProgress
+            )
+        }
     }
 }
 
@@ -155,59 +178,135 @@ fun AssignmentUploadContent(
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        onFileUriChange(uri) // Update the selected file URI
+        onFileUriChange(uri)
     }
 
-    Column(modifier = modifier.padding(16.dp)) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         errorMessage?.let {
-            Text(text = it, color = MaterialTheme.colorScheme.error)
+            Text(text = it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyLarge)
             Spacer(modifier = Modifier.height(16.dp))
         }
 
         if (isLoading) {
-            // Display loading progress
-            CircularProgressIndicator(progress = uploadProgress, modifier = Modifier.size(80.dp))
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Uploading... ${(uploadProgress * 100).toInt()}%", fontSize = 18.sp)
-            LinearProgressIndicator(progress = uploadProgress, modifier = Modifier.fillMaxWidth())
+            Box(
+                modifier = Modifier
+                    .size(150.dp)
+                    .background(
+                        brush = Brush.radialGradient(
+                            colors = listOf(Color(0xFF6200EA), Color.White),
+                            radius = 300f
+                        ),
+                        shape = MaterialTheme.shapes.medium
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    progress = uploadProgress,
+                    modifier = Modifier.size(80.dp),
+                    color = Color(0xFF03DAC5),
+                    strokeWidth = 8.dp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Uploading... ${(uploadProgress * 100).toInt()}%",
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontSize = 18.sp,
+                        color = Color(0xFF6200EA)
+                    )
+                )
+            }
         } else {
             if (assignments.isNotEmpty()) {
                 var selectedAssignmentId by remember { mutableStateOf(assignments.first().id) }
 
-                // Display assignment selection
-                Text("Select Assignment", fontSize = 20.sp)
                 assignments.forEach { assignment ->
-                    Row(modifier = Modifier.padding(vertical = 8.dp)) {
-                        RadioButton(
-                            selected = (assignment.id == selectedAssignmentId),
-                            onClick = { selectedAssignmentId = assignment.id }
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        elevation = CardDefaults.cardElevation(10.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(assignment.subject)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column {
+                                Text(
+                                    text = assignment.subject,
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = Color(0xFF000838)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(text = "Due: ${assignment.submissionDeadline}", style = MaterialTheme.typography.bodySmall)
+                            }
+                            RadioButton(
+                                selected = (assignment.id == selectedAssignmentId),
+                                onClick = { selectedAssignmentId = assignment.id },
+                                colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF000838))
+                            )
+                        }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // File picker button
-                Button(onClick = {
-                    filePickerLauncher.launch("application/pdf") // Open file picker
-                }) {
-                    Text("Pick Assignment File")
+                Button(
+                    onClick = { filePickerLauncher.launch("application/pdf") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .height(60.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF6200EA),
+                        contentColor = Color.White
+                    ),
+                    shape = MaterialTheme.shapes.large
+                ) {
+                    Icon(imageVector = Icons.Filled.FileUpload, contentDescription = "Upload", tint = Color.White)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Pick Assignment File", style = MaterialTheme.typography.bodyLarge)
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Submit button
-                Button(onClick = { onSubmit(selectedAssignmentId) }) {
-                    Text("Submit Assignment")
+                Button(
+                    onClick = { onSubmit(selectedAssignmentId) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .height(60.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = CustomBlue,
+                        contentColor = Color.White
+                    ),
+                    shape = MaterialTheme.shapes.large
+                ) {
+                    Icon(imageVector = Icons.Filled.Send, contentDescription = "Submit", tint = Color.White)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Submit Assignment", style = MaterialTheme.typography.bodyLarge)
                 }
             } else {
-                Text("No pending assignments available")
+                Text(
+                    "No pending assignments available",
+                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
             }
         }
     }
 }
+
 
 suspend fun submitAssignment(
     studentId: Int,

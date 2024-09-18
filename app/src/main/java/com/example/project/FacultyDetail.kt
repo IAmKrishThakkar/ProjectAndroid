@@ -1,15 +1,22 @@
 package com.example.project
 
+import ErrorScreen
+import LoadingScreen
 import Model.Faculty
 import Model.StudentLogin
 import ProjectTheme
 import RetrofitInstance
 import android.widget.Toast
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -19,6 +26,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -27,7 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,36 +45,22 @@ import kotlinx.coroutines.withContext
 fun FacultyDetail(navController: NavController, studId: Int) {
     var facultyList by remember { mutableStateOf<List<Faculty>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-    var stud_id by remember { mutableStateOf<Int?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var refreshTrigger by remember { mutableStateOf(0) }
 
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
-    // Function to fetch and refresh faculty data
     suspend fun refreshData() {
         isLoading = true
         try {
             val response = withContext(Dispatchers.IO) {
                 RetrofitInstance.api.getFaculty().execute()
             }
-
-
             if (response.isSuccessful) {
                 facultyList = response.body() ?: emptyList()
             } else {
                 errorMessage = "Failed to fetch data: ${response.code()}"
-            }
-
-            val Sresponse = withContext(Dispatchers.IO) {
-                RetrofitInstance.api.getStudents().execute()
-            }
-            if (Sresponse.isSuccessful) {
-                stud_id=studId
-                isLoading = false
-            } else {
-                errorMessage = "Error: ${response.message()}"
-                isLoading = false
             }
         } catch (e: Exception) {
             errorMessage = "Network error: ${e.message}"
@@ -74,19 +70,20 @@ fun FacultyDetail(navController: NavController, studId: Int) {
     }
 
     LaunchedEffect(refreshTrigger) {
-        refreshData()
+        coroutineScope.launch { refreshData() }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(text = "Faculty Details")
+                title = { Text("Faculty Details", style = MaterialTheme.typography.titleLarge) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                    }
                 },
                 actions = {
-                    IconButton(onClick = {
-                        refreshTrigger += 1
-                    }) {
+                    IconButton(onClick = { refreshTrigger += 1 }) {
                         Icon(Icons.Filled.Refresh, contentDescription = "Refresh")
                     }
                 }
@@ -110,25 +107,25 @@ fun FacultyDetail(navController: NavController, studId: Int) {
                 }
             }
         }
-    ) { innerPadding ->
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(paddingValues)
         ) {
             if (isLoading) {
-                Text(text = "Loading...", color = Color.Black, modifier = Modifier.align(Alignment.CenterHorizontally))
+                LoadingScreen(paddingValues)
             } else if (errorMessage != null) {
-                Text(text = errorMessage!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.CenterHorizontally))
+                ErrorScreen(errorMessage = errorMessage!!) {
+                    coroutineScope.launch { refreshData() }
+                }
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(facultyList) { faculty ->
-                        FacultyItem(
-                            facultyName = faculty.name ?: "Unknown",
-                            subject = faculty.department ?: "No Department"
-                        )
+                        FacultyCard(faculty)
                     }
                 }
             }
@@ -137,13 +134,15 @@ fun FacultyDetail(navController: NavController, studId: Int) {
 }
 
 @Composable
-fun FacultyItem(facultyName: String, subject: String) {
+fun FacultyCard(faculty: Faculty) {
     Card(
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(6.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(8.dp)
+            .padding(vertical = 8.dp)
+            .clickable { /* Handle click */ },
+        shape = RoundedCornerShape(12.dp)
     ) {
         Row(
             modifier = Modifier
@@ -151,22 +150,25 @@ fun FacultyItem(facultyName: String, subject: String) {
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Replace with faculty profile image if available
+            Image(
+                painter = rememberAsyncImagePainter(model = "https://netxgroup.in/students/${faculty.profilePhoto}"),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f))
+                    .padding(8.dp)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text(
-                    text = facultyName,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = Color.Black
-                )
-                Text(
-                    text = subject,
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
+                Text(faculty.name ?: "Unknown", style = MaterialTheme.typography.titleLarge)
+                Text(faculty.department ?: "No Department", style = MaterialTheme.typography.bodyMedium)
             }
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable

@@ -8,7 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -19,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,6 +32,7 @@ import com.example.project.ui.theme.CustomWhite
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FacultyProfile(navController: NavController, Fid: Int) {
     var facultyProfile by remember { mutableStateOf<Faculty?>(null) }
@@ -59,6 +58,20 @@ fun FacultyProfile(navController: NavController, Fid: Int) {
     }
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "Profile", color = Color.Black) },
+                actions = {
+                    IconButton(onClick = { logout1(navController) }) {
+                        Icon(
+                            imageVector = Icons.Filled.Logout,
+                            contentDescription = "Logout",
+                            tint = Color.Black
+                        )
+                    }
+                }
+            )
+        },
         bottomBar = {
             BottomAppBar(
                 containerColor = MaterialTheme.colorScheme.primary,
@@ -148,6 +161,12 @@ fun FacultyProfile(navController: NavController, Fid: Int) {
     }
 }
 
+private fun logout1(navController: NavController) {
+
+    navController.navigate("welcome") {
+        popUpTo("welcome") { inclusive = true }
+    }
+}
 @Composable
 fun FacultyProfile(profilepic: String, title: String, details: List<String>) {
     Row(

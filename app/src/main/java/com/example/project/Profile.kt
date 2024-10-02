@@ -34,6 +34,7 @@ import com.example.project.ui.theme.CustomWhite
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Profile(navController: NavHostController, studId: Int) {
     var studentProfile by remember { mutableStateOf<StudentLogin?>(null) }
@@ -63,6 +64,20 @@ fun Profile(navController: NavHostController, studId: Int) {
     }
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "Profile", color = Color.Black) },
+                actions = {
+                    IconButton(onClick = { logout(navController) }) {
+                        Icon(
+                            imageVector = Icons.Filled.Logout,
+                            contentDescription = "Logout",
+                            tint = Color.Black
+                        )
+                    }
+                }
+            )
+        },
         bottomBar = {
             BottomAppBar(
                 containerColor = CustomBlue,
@@ -228,6 +243,12 @@ fun ProfilePicture(profilepic: String, title: String, details: List<String>) {
     }
 }
 
+private fun logout(navController: NavHostController) {
+
+    navController.navigate("welcome") {
+        popUpTo("welcome") { inclusive = true }
+    }
+}
 
 @Composable
 fun ProfileSection(title: String, details: List<String>) {

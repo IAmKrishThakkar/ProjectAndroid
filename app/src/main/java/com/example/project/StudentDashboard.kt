@@ -9,8 +9,6 @@ import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -26,9 +24,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -248,48 +244,195 @@ fun StudentDashboard(navController: NavController, studID: Int) {
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
+fun calculateAttendanceStats(attendance: List<Attendance>): Triple<Float, Float, Float> {
+    val totalClasses = attendance.size
+    val presentClasses = attendance.count { it.status == 1 }
+    val absentClasses = attendance.count { it.status == 0 }
+    val grantedClasses = attendance.count { it.status == 2 }
+
+    val presentPercentage = if (totalClasses > 0) (presentClasses.toFloat() / totalClasses) * 100 else 0f
+    val absentPercentage = if (totalClasses > 0) (absentClasses.toFloat() / totalClasses) * 100 else 0f
+    val grantedPercentage= if (totalClasses>0) (grantedClasses.toFloat()/ totalClasses) * 100 else 0f
+
+    return Triple(presentPercentage, absentPercentage, grantedPercentage)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AttendanceArea(attendance: List<Attendance>) {
-    Card(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(7.dp),
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface
-        )
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            CurrentMonthDisplay() // Show current month and calendar
-            Spacer(modifier = Modifier.height(16.dp))
+    var currentMonth by remember { mutableStateOf(LocalDate.now().month) }
+    var currentYear by remember { mutableStateOf(LocalDate.now().year) }
 
-            // Display attendance for the current month
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(7),
-                contentPadding = PaddingValues(8.dp),
-                modifier = Modifier.height(260.dp)
-            ) {
-                val daysInMonth = LocalDate.now().lengthOfMonth()
-                val firstDayOfMonth = LocalDate.now().withDayOfMonth(1).dayOfWeek.value
-
-                // Add blank spaces for the days before the first of the month
-                items(firstDayOfMonth - 1) {
-                    Box(modifier = Modifier.size(20.dp)) // Empty box for padding
+    Column {
+        // Month Navigation Controls
+        MonthNavigation(
+            currentMonth = currentMonth,
+            currentYear = currentYear,
+            onPreviousMonth = {
+                if (currentMonth.value == 1) {
+                    currentMonth = currentMonth.minus(1)
+                    currentYear -= 1
+                } else {
+                    currentMonth = currentMonth.minus(1)
                 }
+            },
+            onNextMonth = {
+                if (currentMonth.value == 12) {
+                    currentMonth = currentMonth.plus(1)
+                    currentYear += 1
+                } else {
+                    currentMonth = currentMonth.plus(1)
+                }
+            }
+        )
 
-                // Add day numbers with attendance status
-                items(daysInMonth) { index ->
-                    val day = index + 1
-                    val date = LocalDate.now().withDayOfMonth(day).format(DateTimeFormatter.ISO_DATE)
-                    val status = attendance.find { it.date == date }?.status ?: -1
-                    DayCard(day, status)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Display calendar for selected month
+        Card(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(7.dp),
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                CurrentMonthDisplay(currentMonth, currentYear)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(7),
+                    contentPadding = PaddingValues(8.dp),
+                    modifier = Modifier.height(260.dp)
+                ) {
+                    val daysInMonth = LocalDate.of(currentYear, currentMonth, 1).lengthOfMonth()
+                    val firstDayOfMonth = LocalDate.of(currentYear, currentMonth, 1).dayOfWeek.value
+
+                    items(firstDayOfMonth - 1) {
+                        Box(modifier = Modifier.size(20.dp)) // Empty box for padding
+                    }
+
+                    items(daysInMonth) { index ->
+                        val day = index + 1
+                        val date = LocalDate.of(currentYear, currentMonth, day).format(DateTimeFormatter.ISO_DATE)
+                        val status = attendance.find { it.date == date }?.status ?: -1
+                        DayCard(day, status)
+                    }
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Attendance statistics section
+        AttendanceStatsSection(attendance)
     }
 }
+
+@Composable
+fun MonthNavigation(currentMonth: java.time.Month, currentYear: Int, onPreviousMonth: () -> Unit, onNextMonth: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onPreviousMonth) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Previous Month")
+        }
+
+        Text(
+            text = "${currentMonth.name.lowercase().replaceFirstChar { it.uppercase() }} $currentYear",
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+        )
+
+        IconButton(onClick = onNextMonth) {
+            Icon(Icons.Default.ArrowForward, contentDescription = "Next Month")
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun CurrentMonthDisplay(currentMonth: java.time.Month, currentYear: Int) {
+    Column(modifier = Modifier.padding(10.dp)) {
+        Text(
+            text = "$currentMonth $currentYear",
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        DayNamesRow()
+
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+}
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun AttendanceStatsSection(attendance: List<Attendance>) {
+    val (presentPercentage, absentPercentage, grantedPercentage) = calculateAttendanceStats(attendance)
+
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+    ) {
+        Text(
+            text = "Attendance Statistics",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            CircularProgressIndicator(
+                progress = presentPercentage / 100f,
+                modifier = Modifier.size(80.dp),
+                color = Color.Green,
+                strokeWidth = 6.dp
+            )
+            CircularProgressIndicator(
+                progress = absentPercentage / 100f,
+                modifier = Modifier.size(80.dp),
+                color = Color.Red,
+                strokeWidth = 6.dp
+            )
+            CircularProgressIndicator(
+                progress = grantedPercentage / 100f,
+                modifier = Modifier.size(80.dp),
+                color = Color.Blue,
+                strokeWidth = 6.dp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(
+                text = "Present: ${String.format("%.2f", presentPercentage)}%",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "Absent: ${String.format("%.2f", absentPercentage)}%",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "Granted: ${String.format("%.2f", grantedPercentage)}%",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }
+}
+
+
+// Helper functions and previews (NavigationIcon, SectionTitle, etc.)
 
 
 @RequiresApi(Build.VERSION_CODES.O)

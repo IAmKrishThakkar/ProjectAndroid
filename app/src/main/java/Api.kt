@@ -102,6 +102,23 @@ interface StudentApi {
         @Part("status") status: RequestBody,
         @Part("date") date: RequestBody
     ): Response<ApiResponse>
+
+    @GET("students/attendance.php")
+    fun getAttendanceForDate(
+        @Query("student_id") studentId: Int,
+        @Query("date") date: String
+    ): Call<List<Attendance>>
+
+    @Multipart
+    @POST("students/attendance.php")
+    suspend fun updateAttendance(
+        @Part("id") id: RequestBody,
+        @Part("student_id") studentId: RequestBody,
+        @Part("status") status: RequestBody,
+        @Part("date") date: RequestBody
+    ): Response<ApiResponse>
+
+
 }
 
 // Retrofit instance

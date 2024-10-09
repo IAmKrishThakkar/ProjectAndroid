@@ -75,7 +75,7 @@ fun WelcomeText() {
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "Scholarly",
+            text = "ClassMate",
             fontSize = 50.sp,
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.primary,
